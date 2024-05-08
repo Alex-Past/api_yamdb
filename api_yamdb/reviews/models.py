@@ -45,29 +45,29 @@ class TitleGenre(models.Model):
         return f'{self.genre} {self.title}'
 
 
-class Review(models.Model):
-    title = models.ForeignKey(
-        Title, on_delete=models.CASCADE, verbose_name='Произведение'
-    )
-    author = models.ForeignKey(
-        User, on_delete=models.CASCADE, verbose_name='Автор отзыва'
-    )
-    text = models.TextField(verbose_name='Текст отзыва')
-    # Не знаю, какой тип поля лучше выбрать в score
-    score = models.PositiveSmallIntegerField(verbose_name='Оценка')
-    pub_date = models.DateTimeField(
-        verbose_name='Дата отзыва', auto_now_add=True
-    )
-
-
-class Comment(models.Model):
-    review = models.ForeignKey(
-        Review, on_delete=models.CASCADE, verbose_name='Отзыв'
-    )
-    author = models.ForeignKey(
-        User, on_delete=models.CASCADE, verbose_name='Автор комментария'
-    )
-    text = models.TextField(verbose_name='Текст комментария')
-    pub_date = models.DateTimeField(
-        verbose_name='Дата комментария', auto_now_add=True
-    )
+# class Review(models.Model):
+#     title = models.ForeignKey(
+#         Title, on_delete=models.CASCADE, verbose_name='Произведение'
+#     )
+#     author = models.ForeignKey(
+#         User, on_delete=models.CASCADE, verbose_name='Автор отзыва'
+#     )
+#     text = models.TextField(verbose_name='Текст отзыва')
+#     # Не знаю, какой тип поля лучше выбрать в score
+#     score = models.PositiveSmallIntegerField(verbose_name='Оценка')
+#     pub_date = models.DateTimeField(
+#         verbose_name='Дата отзыва', auto_now_add=True
+#     )
+#
+#
+# class Comment(models.Model):
+#     review = models.ForeignKey(
+#         Review, on_delete=models.CASCADE, verbose_name='Отзыв'
+#     )
+#     author = models.ForeignKey(
+#         User, on_delete=models.CASCADE, verbose_name='Автор комментария'
+#     )
+#     text = models.TextField(verbose_name='Текст комментария')
+#     pub_date = models.DateTimeField(
+#         verbose_name='Дата комментария', auto_now_add=True
+#     )
