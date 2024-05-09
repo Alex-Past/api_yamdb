@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator
 
 from reviews.models import Category, Genre, Title, TitleGenre
 
@@ -23,15 +22,12 @@ class TitleSerializer(serializers.ModelSerializer):
         # required=False
     )
     category = CategorySerializer()
-    rating = serializers.SerializerMethodField()
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
         fields = ('id', 'name', 'year', 'rating', 'description', 'genres',
                   'category')
-
-    def get_rating(self, obj):
-        pass
 
     def create(self, validated_data):
         # По идее проверка не нужна, ведь поле обязательно, но пока оставлю
