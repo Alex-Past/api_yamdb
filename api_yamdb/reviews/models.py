@@ -1,10 +1,15 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.core.validators import MaxValueValidator
+from django.utils import timezone
+
 
 User = get_user_model()
 
 
 class Category(models.Model):
+    """Модель для категорий (типов) произведений."""
+
     name_cat = models.TextField(
         verbose_name='Наименование категории', max_length=256
     )
@@ -12,8 +17,17 @@ class Category(models.Model):
         unique=True, verbose_name='Слаг категории', max_length=256
     )
 
+    class Meta:
+        verbose_name = 'категория'
+        verbose_name_plural = 'Категории'
+
+    def __str__(self):
+        return self.name_cat
+
 
 class Genre(models.Model):
+    """Модель для жанров произведений."""
+
     name_genre = models.TextField(
         verbose_name='Наименование жанра', max_length=256
     )
@@ -21,21 +35,49 @@ class Genre(models.Model):
         unique=True, verbose_name='Слаг жанра', max_length=50
     )
 
+    class Meta:
+        verbose_name = 'жанр'
+        verbose_name_plural = 'Жанры'
+
+    def __str__(self):
+        return self.name_genre
+
 
 class Title(models.Model):
+    """Модель для произведения."""
+
     name = models.TextField(verbose_name='Название', max_length=256)
-    year = models.DateTimeField(verbose_name='Год выпуска')
-    # Рейтинг мне кажется надо рассчитывать в сериализаторе. Как думаете?
-    description = models.TextField(verbose_name='Описание', blank=True)
-    genre = models.ManyToManyField(
+    year = models.PositiveSmallIntegerField(
+        verbose_name='Год выпуска',
+        validators=[
+            MaxValueValidator(
+                int(timezone.now().year),
+                message='Год выпуска не может быть больше текущего'
+            )
+        ],
+    )
+    description = models.TextField(
+        verbose_name='Описание', blank=True
+    )
+    genres = models.ManyToManyField(
         Genre, through='TitleGenre', verbose_name='Жанр'
     )
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL, null=True, blank=True,
-        verbose_name='Категория')
+        verbose_name='Категория'
+    )
+
+    class Meta:
+        verbose_name = 'произведение'
+        verbose_name_plural = 'Произведения'
+
+    def __str__(self):
+        return self.name
 
 
 class TitleGenre(models.Model):
+    """Промежуточная модель для произведений и жанров."""
+
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
     genre = models.ForeignKey(
         Genre, on_delete=models.SET_NULL, null=True, blank=True,
@@ -47,14 +89,15 @@ class TitleGenre(models.Model):
 
 # class Review(models.Model):
 #     title = models.ForeignKey(
-#         Title, on_delete=models.CASCADE, verbose_name='Произведение'
+#         Title, on_delete=models.CASCADE,
+#         verbose_name='Произведение', related_name='rating'
 #     )
 #     author = models.ForeignKey(
 #         User, on_delete=models.CASCADE, verbose_name='Автор отзыва'
 #     )
 #     text = models.TextField(verbose_name='Текст отзыва')
-#     # Не знаю, какой тип поля лучше выбрать в score
-#     score = models.PositiveSmallIntegerField(verbose_name='Оценка')
+#     score = models.PositiveSmallIntegerField(
+#         verbose_name='Оценка')
 #     pub_date = models.DateTimeField(
 #         verbose_name='Дата отзыва', auto_now_add=True
 #     )
