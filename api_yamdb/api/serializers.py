@@ -3,20 +3,41 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
 from reviews.models import Category, Genre, Title, TitleGenre, Comment, Review
+from consts import MAX_LEN_NAME, MAX_LEN_SLUG
+from reviews.models import Category, Genre, Title, TitleGenre
 
 
 User = get_user_model()
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериалайз"""
+    name_cat = serializers.CharField(
+        max_length=MAX_LEN_NAME,
+        validators=[UniqueValidator(queryset=Category.objects.all())]
+    )
+    slug_cat = serializers.SlugField(
+        max_length=MAX_LEN_SLUG,
+        validators=[UniqueValidator(queryset=Category.objects.all())]
+    )
+
     class Meta:
         fields = ('name_cat', 'slug_cat')
         model = Category
 
 
 class GenreSerializer(serializers.ModelSerializer):
+    name_genre = serializers.CharField(
+        max_length=MAX_LEN_NAME,
+        validators=[UniqueValidator(queryset=Genre.objects.all())]
+    )
+    slug_genre = serializers.SlugField(
+        max_length=MAX_LEN_SLUG,
+        validators=[UniqueValidator(queryset=Genre.objects.all())]
+    )
+
     class Meta:
         fields = ('name_genre', 'slug_genre')
         model = Genre
