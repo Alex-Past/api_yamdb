@@ -1,11 +1,15 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
 from django.db.models import Avg
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 
-from api.serializers import TitleSerializer, CategorySerializer, CommentSerializer, ReviewSerializer, GenreSerializer
+from api.serializers import TitleSerializer, CategorySerializer, CommentSerializer, ReviewSerializer, GenreSerializer, UserSerializer
+from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from reviews.models import Title, Category, Genre, Review
+
+User = get_user_model()
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -16,7 +20,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
     filter_backends = (DjangoFilterBackend,)
     # Жду прав доступа
-    # permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     filterset_fields = (
         'category__slug_cat', 'genres__slug_genre', 'name', 'year'
     )
@@ -29,7 +33,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
     filter_backends = (DjangoFilterBackend,)
     # Жду прав доступа
-    # permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     filterset_fields = ('name_cat',)
 
 
@@ -40,13 +44,13 @@ class GenreViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
     filter_backends = (DjangoFilterBackend,)
     # Жду прав доступа
-    # permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     filterset_fields = ('name_genre',)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = #Пермишшены моделей автора, модератора или админа
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get_queryset(self):
         review = get_object_or_404(
@@ -63,7 +67,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = #пермишн модели автора, модератора или админа
+    permission_classes = IsAuthorOrReadOnly
 
     def get_queryset(self):
         title = get_object_or_404(
@@ -76,3 +80,24 @@ class ReviewViewSet(viewsets.ModelViewSet):
             Title,
             id=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
+
+
+
+
+
+
+
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (IsAdminOrReadOnly,)        
+
+
+def get_token():
+    pass
+
+def signup(request):
+    pass
