@@ -3,7 +3,7 @@ from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils import timezone
 
-from consts import MAX_LEN_NAME, MAX_LEN_SLUG, LENGTH_TEXT
+from consts import MAX_LEN_NAME, LENGTH_TEXT
 
 User = get_user_model()
 
@@ -21,7 +21,7 @@ class Category(models.Model):
         verbose_name_plural = 'Категории'
 
     def __str__(self):
-        return self.name_cat
+        return self.name_cat[:LENGTH_TEXT]
 
 
 class Genre(models.Model):
@@ -37,7 +37,7 @@ class Genre(models.Model):
         verbose_name_plural = 'Жанры'
 
     def __str__(self):
-        return self.name_genre
+        return self.name_genre[:LENGTH_TEXT]
 
 
 class Title(models.Model):
@@ -69,7 +69,7 @@ class Title(models.Model):
         verbose_name_plural = 'Произведения'
 
     def __str__(self):
-        return self.name
+        return self.name[:LENGTH_TEXT]
 
 
 class TitleGenre(models.Model):
@@ -81,7 +81,7 @@ class TitleGenre(models.Model):
     )
 
     def __str__(self):
-        return f'{self.genre} {self.title}'
+        return f'{self.genre} {self.title}'[:LENGTH_TEXT]
 
 
 class Review(models.Model):
