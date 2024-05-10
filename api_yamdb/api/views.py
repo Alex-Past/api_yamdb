@@ -10,8 +10,12 @@ from rest_framework.response import Response
 
 from api.mixins import CategoryGenreMixin
 from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly, IsModerator
-from api.serializers import SignUpSerializer, TitleSerializer, CategorySerializer, CommentSerializer, ReviewSerializer, GenreSerializer, TokenSerializer, UserSerializer
-
+from api.serializers import (
+    CategorySerializer, CommentSerializer, ReviewSerializer,
+    GenreSerializer, SignUpSerializer, TokenSerializer,
+    UserSerializer, TitleReadSerializer, TitleWriteSerializer
+)
+from api.filters import TitleFilter
 from reviews.models import Title, Category, Genre, Review
 
 User = get_user_model()
