@@ -127,3 +127,11 @@ class UserSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = User
 
+class SignUpSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    email = serializers.EmailField(required=True)
+
+
+class TokenSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    confirmation_code = serializers.CharField(required=True)    
