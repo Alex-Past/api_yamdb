@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -8,6 +9,8 @@ from reviews.models import Category, Genre, Title, TitleGenre, Comment, Review
 from consts import MAX_LEN_NAME, MAX_LEN_SLUG
 from reviews.models import Category, Genre, Title, TitleGenre
 
+
+User = get_user_model()
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериалайз"""
@@ -114,3 +117,10 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Review
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = '__all__'
+        model = User
+

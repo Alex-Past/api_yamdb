@@ -1,13 +1,18 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
 from django.db.models import Avg
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
+
 
 from api.mixins import CategoryGenreMixin
 from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly, IsModerator
-from api.serializers import TitleSerializer, CategorySerializer, CommentSerializer, ReviewSerializer, GenreSerializer
+from api.serializers import TitleSerializer, CategorySerializer, CommentSerializer, ReviewSerializer, GenreSerializer, UserSerializer
+
 from reviews.models import Title, Category, Genre, Review
+
+User = get_user_model()
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -28,6 +33,7 @@ class CategoryViewSet(CategoryGenreMixin):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     search_fields = ('name_cat',)
+
 
 
 class GenreViewSet(CategoryGenreMixin):
@@ -56,6 +62,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
+
     # permission_classes =
 
     def get_queryset(self):
@@ -69,3 +76,24 @@ class ReviewViewSet(viewsets.ModelViewSet):
             Title,
             id=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
+
+
+
+
+
+
+
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (IsAdminOrReadOnly,)        
+
+
+def get_token():
+    pass
+
+def signup(request):
+    pass
