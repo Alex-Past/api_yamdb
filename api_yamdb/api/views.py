@@ -11,13 +11,14 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
 from api.mixins import CategoryGenreMixin
-from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly, IsModerator
+from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly, IsModerator, AdminModeratorAuthorPermission
 from api.serializers import (
     CategorySerializer, CommentSerializer, ReviewSerializer,
     GenreSerializer, SignUpSerializer, TokenSerializer,
     UserSerializer, TitleReadSerializer, TitleWriteSerializer
 )
 from api.filters import TitleFilter
+
 from reviews.models import Title, Category, Genre, Review
 
 User = get_user_model()
@@ -57,7 +58,8 @@ class GenreViewSet(CategoryGenreMixin):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthorOrReadOnly,)
+
+    permission_classes = (AdminModeratorAuthorPermission,)
 
     def get_queryset(self):
         review = get_object_or_404(
@@ -75,7 +77,8 @@ class CommentViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
 
-    permission_classes = (IsAuthorOrReadOnly,)
+    permission_classes = (AdminModeratorAuthorPermission,)
+
 
     def get_queryset(self):
         title = get_object_or_404(
