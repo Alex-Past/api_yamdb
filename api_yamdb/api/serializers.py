@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.core.validators import EmailValidator, RegexValidator
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 
@@ -124,12 +125,21 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = '__all__'
+        fields = ('first_name', 'last_name', 'username',
+                  'bio', 'email', 'role')
         model = User
+        
+
 
 class SignUpSerializer(serializers.Serializer):
-    username = serializers.CharField(required=True)
-    email = serializers.EmailField(required=True)
+    username = serializers.CharField(max_length=150,required=True)
+    email = serializers.EmailField(max_length=254, required=True)
+
+    def validate(self, data):
+        if data['username'] == 'me':
+            raise serializers.ValidationError(
+                'Нельзя использовать имя "me"')
+        return data
 
 
 class TokenSerializer(serializers.Serializer):
