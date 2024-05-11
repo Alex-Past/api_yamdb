@@ -121,7 +121,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = Review
 
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
@@ -135,3 +134,4 @@ class SignUpSerializer(serializers.Serializer):
 class TokenSerializer(serializers.Serializer):
     username = serializers.CharField(required=True)
     confirmation_code = serializers.CharField(required=True)    
+
