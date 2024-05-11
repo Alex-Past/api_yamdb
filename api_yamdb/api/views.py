@@ -4,7 +4,12 @@ from rest_framework.pagination import LimitOffsetPagination
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 
-from api.serializers import TitleSerializer, CategorySerializer, CommentSerializer, ReviewSerializer, GenreSerializer
+from .permissions import AdminModeratorAuthorPermission
+from api.serializers import (
+    TitleSerializer, CategorySerializer,
+    CommentSerializer, ReviewSerializer,
+    GenreSerializer
+)
 from reviews.models import Title, Category, Genre, Review
 
 
@@ -46,7 +51,7 @@ class GenreViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = #Пермишшены моделей автора, модератора или админа
+    permission_classes = (AdminModeratorAuthorPermission,)
 
     def get_queryset(self):
         review = get_object_or_404(
@@ -63,7 +68,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = #пермишн модели автора, модератора или админа
+    permission_classes = (AdminModeratorAuthorPermission,)
 
     def get_queryset(self):
         title = get_object_or_404(
