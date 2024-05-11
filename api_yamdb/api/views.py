@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, status
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
 from django.core.mail import send_mail
@@ -23,6 +23,7 @@ User = get_user_model()
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Title."""
+
     http_method_names = ['get', 'post', 'patch', 'delete']
     queryset = Title.objects.annotate(rating=Avg('reviews__score')).all()
     pagination_class = LimitOffsetPagination
@@ -38,6 +39,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class CategoryViewSet(CategoryGenreMixin):
     """Вьюсет для модели Category."""
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     search_fields = ('name',)
@@ -45,6 +47,7 @@ class CategoryViewSet(CategoryGenreMixin):
 
 class GenreViewSet(CategoryGenreMixin):
     """Вьюсет для модели Genre."""
+
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     search_fields = ('name',)
@@ -52,7 +55,7 @@ class GenreViewSet(CategoryGenreMixin):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthorOrReadOnly, IsModerator)
+    permission_classes = (IsAuthorOrReadOnly,)
 
     def get_queryset(self):
         review = get_object_or_404(
@@ -70,7 +73,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
 
-    permission_classes = (IsAuthorOrReadOnly, IsModerator)
+    permission_classes = (IsAuthorOrReadOnly,)
 
     def get_queryset(self):
         title = get_object_or_404(
