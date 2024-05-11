@@ -10,3 +10,4 @@ class CategoryGenreMixin(
 ):
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
+    pagination_class = LimitOffsetPagination
