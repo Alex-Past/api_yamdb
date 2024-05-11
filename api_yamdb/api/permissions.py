@@ -28,7 +28,6 @@ class IsModerator(IsAuthorOrReadOnly):
     def has_object_permission(self, request, view, obj):
         return request.user.is_moderator
 
-
 class AdminModeratorAuthorPermission(permissions.BasePermission):
     """Резрешение для админа/модератора/автора на различные действия."""
 
@@ -71,3 +70,4 @@ class IsAdminUserOrReadOnly(permissions.BasePermission):
         if request.user.is_authenticated:
             return request.user.is_admin
         return False
+

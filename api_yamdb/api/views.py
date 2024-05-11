@@ -1,56 +1,63 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
+from django.core.mail import send_mail
 from django.db.models import Avg
+from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
-from .permissions import AdminModeratorAuthorPermission
+=======
+from api.mixins import CategoryGenreMixin
+from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly, IsModerator, AdminModeratorAuthorPermission
 from api.serializers import (
-    TitleSerializer, CategorySerializer,
-    CommentSerializer, ReviewSerializer,
-    GenreSerializer
+    CategorySerializer, CommentSerializer, ReviewSerializer,
+    GenreSerializer, SignUpSerializer, TokenSerializer,
+    UserSerializer, TitleReadSerializer, TitleWriteSerializer
 )
+from api.filters import TitleFilter
+
 from reviews.models import Title, Category, Genre, Review
+
+User = get_user_model()
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Title."""
-    # related_name="reviews" в модели Review
-    queryset = Title.objects.annotate(rating=Avg("reviews__score")).all()
-    serializer_class = TitleSerializer
+
+    http_method_names = ['get', 'post', 'patch', 'delete']
+    queryset = Title.objects.annotate(rating=Avg('reviews__score')).all()
     pagination_class = LimitOffsetPagination
     filter_backends = (DjangoFilterBackend,)
-    # Жду прав доступа
-    # permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    filterset_fields = (
-        'category__slug_cat', 'genres__slug_genre', 'name', 'year'
-    )
+    permission_classes = (IsAdminOrReadOnly,)
+    filterset_class = TitleFilter
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return TitleReadSerializer
+        return TitleWriteSerializer
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(CategoryGenreMixin):
     """Вьюсет для модели Category."""
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    pagination_class = LimitOffsetPagination
-    filter_backends = (DjangoFilterBackend,)
-    # Жду прав доступа
-    # permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    filterset_fields = ('name_cat',)
+    search_fields = ('name',)
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(CategoryGenreMixin):
     """Вьюсет для модели Genre."""
+
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    pagination_class = LimitOffsetPagination
-    filter_backends = (DjangoFilterBackend,)
-    # Жду прав доступа
-    # permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    filterset_fields = ('name_genre',)
+    search_fields = ('name',)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
+
     permission_classes = (AdminModeratorAuthorPermission,)
 
     def get_queryset(self):
@@ -68,7 +75,9 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
+
     permission_classes = (AdminModeratorAuthorPermission,)
+
 
     def get_queryset(self):
         title = get_object_or_404(
@@ -81,3 +90,48 @@ class ReviewViewSet(viewsets.ModelViewSet):
             Title,
             id=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
+
+
+
+
+
+
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (IsAdminOrReadOnly,)     
+
+
+
+
+@api_view(['POST'])
+def signup(request):
+    serializer = SignUpSerializer(data=request.data)
+    if serializer.is_valid():
+        username = serializer.validated_data.get('username')
+        email = serializer.validated_data.get('email')
+        User.objects.get_or_create(username=username, email=email)
+        #confirmation_code = 
+        send_mail(subject='Регистрация на сайте api_yamdb',
+                  #message=f'Проверочный код: {confirmation_code}',
+                  from_email='api_yamdb',
+                  recipient_list=[email],
+                  fail_silently=True,)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def get_token(request):
+    serializer = TokenSerializer(data=request.data)
+    if serializer.is_valid():
+        user = get_object_or_404(User, username=serializer.validated_data.get('username'))
+        ...
+
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
