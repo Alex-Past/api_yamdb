@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
 from api.mixins import CategoryGenreMixin
-from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly, IsModerator, AdminModeratorAuthorPermission
+from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly, IsModerator, AdminModeratorAuthorPermission, IsAdminUserOrReadOnly
 from api.serializers import (
     CategorySerializer, CommentSerializer, ReviewSerializer,
     GenreSerializer, SignUpSerializer, TokenSerializer,
@@ -53,7 +53,14 @@ class GenreViewSet(CategoryGenreMixin):
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    permission_classes = (IsAdminUserOrReadOnly,)
     search_fields = ('name',)
+    
+    def delete_genre(self, request, slug):
+        """Позволяет удалить жанр произведения."""
+        genre = get_object_or_404(Genre, slug=slug)
+        genre.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
