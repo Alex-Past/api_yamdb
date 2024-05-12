@@ -131,7 +131,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class SignUpSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=150,required=True)
+    username = serializers.RegexField(
+        regex=r'^[\w.@+-]+\Z',
+        max_length=150,
+        required=True
+    )
     email = serializers.EmailField(max_length=254, required=True)
 
     def validate(self, data):

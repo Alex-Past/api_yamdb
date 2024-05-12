@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework.permissions import AllowAny
 
 from api.mixins import CategoryGenreMixin
 from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly, IsModerator, AdminModeratorAuthorPermission
@@ -119,31 +120,42 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def signup(request):
     serializer = SignUpSerializer(data=request.data)
-    if serializer.is_valid():
-        username = serializer.validated_data.get('username')
-        email = serializer.validated_data.get('email')
-        user, created = User.objects.get_or_create(username=username, email=email)
-        confirmation_code = default_token_generator.make_token(user)
-        send_mail(subject='Регистрация на сайте api_yamdb',
-                  message=f'Проверочный код: {confirmation_code}',
-                  from_email='api_yamdb',
-                  recipient_list=[email],
-                  fail_silently=True,)
+    serializer.is_valid(raise_exception=True)
+    username = serializer.validated_data.get('username')
+    email = serializer.validated_data.get('email')
+    if User.objects.filter(username=username).exists():
+        return Response(
+            {'detail': f'Пользователь с именем {username} уже существует.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    if User.objects.filter(email=email).exists():
+        return Response(
+            {'detail': f'Почтовый адрес {email} уже занят.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )             
+    user, created = User.objects.get_or_create(username=username, email=email)
+    confirmation_code = default_token_generator.make_token(user)
+    send_mail(subject='Регистрация на сайте api_yamdb',
+                message=f'Проверочный код: {confirmation_code}',
+                from_email='api_yamdb',
+                recipient_list=[email],
+                fail_silently=True,)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)    
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(serializer.data, status=status.HTTP_200_OK)    
+    #return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
 def get_token(request):
     serializer = TokenSerializer(data=request.data)
-    if serializer.is_valid():
-        user = get_object_or_404(User, username=serializer.validated_data.get('username'))
-        confirmation_code = serializer.validated_data.get('confirmation_code')
-        if default_token_generator.check_token(user, confirmation_code):
-            token = AccessToken.for_user(user)
-            return Response({'token': str(token)}, status=status.HTTP_200_OK)
+    serializer.is_valid(raise_exception=True)
+    user = get_object_or_404(User, username=serializer.validated_data.get('username'))
+    confirmation_code = serializer.validated_data.get('confirmation_code')
+    if default_token_generator.check_token(user, confirmation_code):
+        token = AccessToken.for_user(user)
+        return Response({'token': str(token)}, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 
