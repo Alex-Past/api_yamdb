@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
 from django.core.mail import send_mail
@@ -58,7 +58,7 @@ class GenreViewSet(CategoryGenreMixin):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-
+    http_method_names = ['get', 'post', 'patch', 'delete']
     permission_classes = (AdminModeratorAuthorPermission,)
 
     def get_queryset(self):
@@ -76,7 +76,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-
+    http_method_names = ['get', 'post', 'patch', 'delete']
     permission_classes = (AdminModeratorAuthorPermission,)
 
 
@@ -94,10 +94,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    
+    http_method_names = ['get', 'post', 'patch', 'delete']
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
 
     @action(
             methods=['get', 'patch'],
@@ -132,6 +134,7 @@ def signup(request):
 
         return Response(serializer.data, status=status.HTTP_200_OK)    
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['POST'])
 def get_token(request):
