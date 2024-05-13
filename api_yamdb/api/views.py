@@ -140,7 +140,8 @@ def signup(request):
         user, created = User.objects.get_or_create(username=username,
                                                    email=email)
     except IntegrityError:
-        f'Пользователь с именем "{username}" и почтой "{email}" уже существует!'
+        f'Пользователь с именем "{username}" '
+        'и почтой "{email}" уже существует!'
         return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
     confirmation_code = default_token_generator.make_token(user)
     send_mail(subject='Регистрация на сайте api_yamdb',
