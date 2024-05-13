@@ -1,20 +1,19 @@
 from django.core.exceptions import ValidationError
-from django.core.validators import EmailValidator, RegexValidator
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from reviews.models import Category, Genre, Title, GenreTitle, Comment, Review
+from reviews.models import Category, Genre, Title, Comment, Review
 from consts import MAX_LEN_NAME, MAX_LEN_SLUG
-
 
 User = get_user_model()
 
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор для модели категория."""
+
     name = serializers.CharField(
         max_length=MAX_LEN_NAME,
         validators=[UniqueValidator(queryset=Category.objects.all())]
@@ -31,6 +30,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор для модели жанр."""
+
     name = serializers.CharField(
         max_length=MAX_LEN_NAME,
         validators=[UniqueValidator(queryset=Genre.objects.all())]
@@ -77,6 +77,8 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели комментарии."""
+
     review = serializers.SlugRelatedField(
         slug_field='text',
         read_only=True
@@ -92,6 +94,8 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели отзывы."""
+
     title = serializers.SlugRelatedField(
         slug_field='name',
         read_only=True
@@ -112,8 +116,8 @@ class ReviewSerializer(serializers.ModelSerializer):
         title_id = self.context.get('view').kwargs.get('title_id')
         title = get_object_or_404(Title, pk=title_id)
         if (
-            request.method == 'POST'
-            and Review.objects.filter(title=title, author=author).exists()
+                request.method == 'POST'
+                and Review.objects.filter(title=title, author=author).exists()
         ):
             raise ValidationError('Может существовать только один отзыв!')
         return data
@@ -122,15 +126,19 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = Review
 
+
 class UserSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели User."""
+
     class Meta:
         fields = ('first_name', 'last_name', 'username',
                   'bio', 'email', 'role')
         model = User
-        
 
 
 class SignUpSerializer(serializers.Serializer):
+    """Сериализатор для регистрации пользователя."""
+
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+\Z',
         max_length=150,
@@ -144,10 +152,9 @@ class SignUpSerializer(serializers.Serializer):
                 'Нельзя использовать имя "me"'
             )
         return data
-    
+
 
 class TokenSerializer(serializers.Serializer):
+    """Сериализатор для использования токена."""
     username = serializers.CharField(max_length=150, required=True)
     confirmation_code = serializers.CharField(required=True)
-     
-

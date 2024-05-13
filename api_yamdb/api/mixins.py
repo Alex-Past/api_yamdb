@@ -11,6 +11,12 @@ class CategoryGenreMixin(
     viewsets.mixins.CreateModelMixin, viewsets.mixins.DestroyModelMixin,
     viewsets.mixins.ListModelMixin, viewsets.GenericViewSet
 ):
+    """
+    Миксин для вьюсетов Категорий и Жанров.
+
+    Проектом предусмотрено, что категории и жанры можно только просматривать,
+    создавать и удалять. Создавать и удалять может только администратор
+    """
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     pagination_class = LimitOffsetPagination
