@@ -1,12 +1,12 @@
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
-from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
+from api_yamdb.settings import MAX_LEN_NAME, MAX_LEN_SLUG
 from reviews.models import Category, Genre, Title, Comment, Review
-from consts import MAX_LEN_NAME, MAX_LEN_SLUG
 
 User = get_user_model()
 
@@ -131,8 +131,9 @@ class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели User."""
 
     class Meta:
-        fields = ('first_name', 'last_name', 'username',
-                  'bio', 'email', 'role')
+        fields = (
+            'first_name', 'last_name', 'username', 'bio', 'email', 'role'
+        )
         model = User
 
 
@@ -156,5 +157,6 @@ class SignUpSerializer(serializers.Serializer):
 
 class TokenSerializer(serializers.Serializer):
     """Сериализатор для использования токена."""
+
     username = serializers.CharField(max_length=150, required=True)
     confirmation_code = serializers.CharField(required=True)

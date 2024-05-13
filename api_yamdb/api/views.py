@@ -1,17 +1,19 @@
-from django.db import IntegrityError
-from rest_framework import viewsets, status, filters
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.pagination import LimitOffsetPagination
-from django.core.mail import send_mail
-from django.db.models import Avg
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.db import IntegrityError
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
+
+from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework.permissions import AllowAny, IsAuthenticated
 
+from api.filters import TitleFilter
 from api.mixins import CategoryGenreMixin
 from api.permissions import (
     IsAdminOrReadOnly, AdminModeratorAuthorPermission, AdminOnly
@@ -21,8 +23,6 @@ from api.serializers import (
     GenreSerializer, SignUpSerializer, TokenSerializer,
     UserSerializer, TitleReadSerializer, TitleWriteSerializer
 )
-from api.filters import TitleFilter
-
 from reviews.models import Title, Category, Genre, Review
 
 User = get_user_model()
@@ -101,6 +101,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    """Вьюсет для создания пользователей."""
+
     http_method_names = ['get', 'post', 'patch', 'delete']
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -129,6 +131,7 @@ class UserViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def signup(request):
+    """Метод для регистрации пользователя."""
     serializer = SignUpSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     try:
@@ -152,6 +155,7 @@ def signup(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def get_token(request):
+    """Метод для получения токена."""
     serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     user = get_object_or_404(

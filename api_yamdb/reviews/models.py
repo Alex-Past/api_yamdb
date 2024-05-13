@@ -1,9 +1,9 @@
 from django.contrib.auth import get_user_model
-from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 from django.utils import timezone
 
-from consts import MAX_LEN_NAME, LENGTH_TEXT
+from api_yamdb.settings import MAX_LEN_NAME, LENGTH_TEXT
 
 User = get_user_model()
 
