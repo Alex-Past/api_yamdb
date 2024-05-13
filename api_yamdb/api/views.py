@@ -61,6 +61,8 @@ class GenreViewSet(CategoryGenreMixin):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    """Вьюсет для модели Comment."""
+
     serializer_class = CommentSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
     permission_classes = (AdminModeratorAuthorPermission,)
@@ -79,6 +81,8 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
+    """Вьюсет для модели Review."""
+
     serializer_class = ReviewSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
     permission_classes = (AdminModeratorAuthorPermission,)

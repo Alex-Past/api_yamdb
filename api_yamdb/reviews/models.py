@@ -80,7 +80,6 @@ class GenreTitle(models.Model):
     )
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
 
-
     def __str__(self):
         return f'{self.genre} {self.title}'[:LENGTH_TEXT]
 
@@ -120,7 +119,7 @@ class Review(models.Model):
         verbose_name_plural = 'Отзывы'
         constraints = [
             models.UniqueConstraint(
-                fields=('title', 'author', ),
+                fields=('title', 'author',),
                 name='unique review'
             )]
         ordering = ('pub_date',)
