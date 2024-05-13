@@ -13,7 +13,9 @@ from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from api.mixins import CategoryGenreMixin
-from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly, IsModerator, AdminModeratorAuthorPermission, AdminOnly
+from api.permissions import (
+    IsAdminOrReadOnly, AdminModeratorAuthorPermission, AdminOnly
+)
 from api.serializers import (
     CategorySerializer, CommentSerializer, ReviewSerializer,
     GenreSerializer, SignUpSerializer, TokenSerializer,
@@ -49,18 +51,6 @@ class CategoryViewSet(CategoryGenreMixin):
     serializer_class = CategorySerializer
     search_fields = ('name',)
 
-    # @action(
-    #     methods=['delete'],
-    #     url_path=r'(?P<slug>\w+)',
-    #     lookup_field='slug',
-    #     detail=False
-    # )
-    # def get_category(self, request, slug):
-    #     category = self.get_object()
-    #     serializer = CategorySerializer(category)
-    #     category.delete()
-    #     return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
-
 
 class GenreViewSet(CategoryGenreMixin):
     """Вьюсет для модели Genre."""
@@ -68,18 +58,6 @@ class GenreViewSet(CategoryGenreMixin):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     search_fields = ('name',)
-
-    # @action(
-    #     methods=['delete'],
-    #     url_path=r'(?P<slug>\w+)',
-    #     lookup_field='slug',
-    #     detail=False
-    # )
-    # def get_genre(self, request, slug):
-    #     genre = self.get_object()
-    #     serializer = GenreSerializer(genre)
-    #     genre.delete()
-    #     return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -105,7 +83,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
     permission_classes = (AdminModeratorAuthorPermission,)
 
-
     def get_queryset(self):
         title = get_object_or_404(
             Title,
@@ -129,11 +106,11 @@ class UserViewSet(viewsets.ModelViewSet):
     lookup_field = 'username'
 
     @action(
-            methods=['get', 'patch'],
-            url_path='me',
-            permission_classes=(IsAuthenticated,),
-            detail=False,
-        )
+        methods=['get', 'patch'],
+        url_path='me',
+        permission_classes=(IsAuthenticated,),
+        detail=False,
+    )
     def update_user(self, request):
         if request.method == 'GET':
             serializer = UserSerializer(self.request.user)
@@ -142,7 +119,7 @@ class UserViewSet(viewsets.ModelViewSet):
                                     data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save(role=request.user.role, partial=True)
-        return Response(serializer.data, status=status.HTTP_200_OK) 
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
@@ -153,28 +130,31 @@ def signup(request):
     try:
         username = serializer.validated_data.get('username')
         email = serializer.validated_data.get('email')
-        user, created = User.objects.get_or_create(username=username, email=email)
+        user, created = User.objects.get_or_create(username=username,
+                                                   email=email)
     except IntegrityError:
         f'Пользователь с именем "{username}" и почтой "{email}" уже существует!'
         return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
     confirmation_code = default_token_generator.make_token(user)
     send_mail(subject='Регистрация на сайте api_yamdb',
-                message=f'Проверочный код: {confirmation_code}',
-                from_email='api_yamdb',
-                recipient_list=[email],
-                fail_silently=True,)
+              message=f'Проверочный код: {confirmation_code}',
+              from_email='api_yamdb',
+              recipient_list=[email],
+              fail_silently=True, )
 
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def get_token(request):
     serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    user = get_object_or_404(User, username=serializer.validated_data.get('username'))
+    user = get_object_or_404(
+        User, username=serializer.validated_data.get('username')
+    )
     confirmation_code = serializer.validated_data.get('confirmation_code')
     if default_token_generator.check_token(user, confirmation_code):
         token = AccessToken.for_user(user)
         return Response({'token': str(token)}, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-                
