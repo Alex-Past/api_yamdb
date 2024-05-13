@@ -49,6 +49,18 @@ class CategoryViewSet(CategoryGenreMixin):
     serializer_class = CategorySerializer
     search_fields = ('name',)
 
+    # @action(
+    #     methods=['delete'],
+    #     url_path=r'(?P<slug>\w+)',
+    #     lookup_field='slug',
+    #     detail=False
+    # )
+    # def get_category(self, request, slug):
+    #     category = self.get_object()
+    #     serializer = CategorySerializer(category)
+    #     category.delete()
+    #     return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+
 
 class GenreViewSet(CategoryGenreMixin):
     """Вьюсет для модели Genre."""
@@ -56,6 +68,18 @@ class GenreViewSet(CategoryGenreMixin):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     search_fields = ('name',)
+
+    # @action(
+    #     methods=['delete'],
+    #     url_path=r'(?P<slug>\w+)',
+    #     lookup_field='slug',
+    #     detail=False
+    # )
+    # def get_genre(self, request, slug):
+    #     genre = self.get_object()
+    #     serializer = GenreSerializer(genre)
+    #     genre.delete()
+    #     return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -128,11 +152,11 @@ def signup(request):
     serializer.is_valid(raise_exception=True)
     try:
         username = serializer.validated_data.get('username')
-        email = serializer.validated_data.get('email')         
+        email = serializer.validated_data.get('email')
         user, created = User.objects.get_or_create(username=username, email=email)
     except IntegrityError:
         f'Пользователь с именем "{username}" и почтой "{email}" уже существует!'
-        return Response(serializer.data, status.HTTP_400_BAD_REQUEST)            
+        return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
     confirmation_code = default_token_generator.make_token(user)
     send_mail(subject='Регистрация на сайте api_yamdb',
                 message=f'Проверочный код: {confirmation_code}',
@@ -140,8 +164,8 @@ def signup(request):
                 recipient_list=[email],
                 fail_silently=True,)
 
-    return Response(serializer.data, status=status.HTTP_200_OK)    
-    
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 @api_view(['POST'])
 def get_token(request):
