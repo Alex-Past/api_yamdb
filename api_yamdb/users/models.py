@@ -37,8 +37,12 @@ class User(AbstractUser):
         null=True
     )
 
-    REQUIRED_FIELDS = ['email']
-    USERNAME_FIELDS = 'email'
+    # REQUIRED_FIELDS = ['email']
+    # USERNAME_FIELDS = 'email'
+    class Meta:
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+        ordering = ('username',)
 
     def __str__(self):
         return str(self.username)

@@ -1,3 +1,4 @@
+from django.db import IntegrityError
 from rest_framework import viewsets, status, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import LimitOffsetPagination
@@ -109,7 +110,7 @@ class UserViewSet(viewsets.ModelViewSet):
             permission_classes=(IsAuthenticated,),
             detail=False,
         )
-    def create_user(self, request):
+    def update_user(self, request):
         if request.method == 'GET':
             serializer = UserSerializer(self.request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -125,19 +126,13 @@ class UserViewSet(viewsets.ModelViewSet):
 def signup(request):
     serializer = SignUpSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    username = serializer.validated_data.get('username')
-    email = serializer.validated_data.get('email')
-    if User.objects.filter(username=username).exists():
-        return Response(
-            {'detail': f'Пользователь с именем {username} уже существует.'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    if User.objects.filter(email=email).exists():
-        return Response(
-            {'detail': f'Почтовый адрес {email} уже занят.'},
-            status=status.HTTP_400_BAD_REQUEST
-        )             
-    user, created = User.objects.get_or_create(username=username, email=email)
+    try:
+        username = serializer.validated_data.get('username')
+        email = serializer.validated_data.get('email')         
+        user, created = User.objects.get_or_create(username=username, email=email)
+    except IntegrityError:
+        f'Пользователь с именем "{username}" и почтой "{email}" уже существует!'
+        return Response(serializer.data, status.HTTP_400_BAD_REQUEST)            
     confirmation_code = default_token_generator.make_token(user)
     send_mail(subject='Регистрация на сайте api_yamdb',
                 message=f'Проверочный код: {confirmation_code}',
