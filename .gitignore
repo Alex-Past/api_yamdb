@@ -5,6 +5,9 @@ __pycache__/
 
 # C extensions
 *.so
+*.sqlite3
+
+static/
 
 # Distribution / packaging
 .Python
@@ -148,3 +151,6 @@ dmypy.json
 # папки со статикой и медиа
 media/
 
+README.md
+
+migrations
