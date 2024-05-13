@@ -141,7 +141,8 @@ class SignUpSerializer(serializers.Serializer):
     def validate(self, data):
         if data['username'] == 'me':
             raise serializers.ValidationError(
-                'Нельзя использовать имя "me"')
+                'Нельзя использовать имя "me"'
+            )
         return data
 
 

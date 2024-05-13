@@ -9,10 +9,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from api.mixins import CategoryGenreMixin
-from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly, IsModerator, AdminModeratorAuthorPermission
+from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly, IsModerator, AdminModeratorAuthorPermission, AdminOnly
 from api.serializers import (
     CategorySerializer, CommentSerializer, ReviewSerializer,
     GenreSerializer, SignUpSerializer, TokenSerializer,
@@ -98,14 +98,15 @@ class UserViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = (AdminOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
+    lookup_field = 'username'
 
     @action(
             methods=['get', 'patch'],
             url_path='me',
-            permission_classes=(IsAuthorOrReadOnly,),
+            permission_classes=(IsAuthenticated,),
             detail=False,
         )
     def create_user(self, request):
@@ -145,8 +146,7 @@ def signup(request):
                 fail_silently=True,)
 
     return Response(serializer.data, status=status.HTTP_200_OK)    
-    #return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    
 
 @api_view(['POST'])
 def get_token(request):
