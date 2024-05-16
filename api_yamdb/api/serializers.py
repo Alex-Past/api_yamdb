@@ -14,14 +14,14 @@ User = get_user_model()
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор для модели категория."""
 
-    name = serializers.CharField(
-        max_length=MAX_LEN_NAME,
-        validators=[UniqueValidator(queryset=Category.objects.all())]
-    )
-    slug = serializers.SlugField(
-        max_length=MAX_LEN_SLUG,
-        validators=[UniqueValidator(queryset=Category.objects.all())]
-    )
+    # name = serializers.CharField(
+    #     max_length=MAX_LEN_NAME,
+    #     validators=[UniqueValidator(queryset=Category.objects.all())]
+    # )
+    # slug = serializers.SlugField(
+    #     max_length=MAX_LEN_SLUG,
+    #     validators=[UniqueValidator(queryset=Category.objects.all())]
+    # )
 
     class Meta:
         fields = ('name', 'slug')
@@ -31,14 +31,14 @@ class CategorySerializer(serializers.ModelSerializer):
 class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор для модели жанр."""
 
-    name = serializers.CharField(
-        max_length=MAX_LEN_NAME,
-        validators=[UniqueValidator(queryset=Genre.objects.all())]
-    )
-    slug = serializers.SlugField(
-        max_length=MAX_LEN_SLUG,
-        validators=[UniqueValidator(queryset=Genre.objects.all())]
-    )
+    # name = serializers.CharField(
+    #     max_length=MAX_LEN_NAME,
+    #     validators=[UniqueValidator(queryset=Genre.objects.all())]
+    # )
+    # slug = serializers.SlugField(
+    #     max_length=MAX_LEN_SLUG,
+    #     validators=[UniqueValidator(queryset=Genre.objects.all())]
+    # )
 
     class Meta:
         fields = ('name', 'slug')
@@ -63,16 +63,15 @@ class TitleWriteSerializer(serializers.ModelSerializer):
     """Сериализатор для записи информации о произведении."""
 
     genre = serializers.SlugRelatedField(
-        slug_field="slug", queryset=Genre.objects.all(), many=True
+        slug_field="slug", queryset=Genre.objects.all(), many=True,
+        allow_null=False, allow_empty=False
     )
     category = serializers.SlugRelatedField(
         slug_field="slug", queryset=Category.objects.all()
     )
 
     class Meta:
-        fields = (
-            'id', 'name', 'year', 'description', 'genre', 'category'
-        )
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category')
         model = Title
 
 
