@@ -14,7 +14,6 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
 from api.filters import TitleFilter
-from api.mixins import CategoryGenreMixin
 from api.permissions import (
     IsAdminOrReadOnly, AdminModeratorAuthorPermission, AdminOnly
 )
@@ -28,11 +27,41 @@ from reviews.models import Title, Category, Genre, Review
 User = get_user_model()
 
 
+class CategoryGenreBaseClass(
+    viewsets.mixins.CreateModelMixin, viewsets.mixins.DestroyModelMixin,
+    viewsets.mixins.ListModelMixin, viewsets.GenericViewSet
+):
+    """
+    Базовый класс для вьюсетов Категорий и Жанров.
+
+    Проектом предусмотрено, что категории и жанры можно только просматривать,
+    создавать и удалять. Создавать и удалять может только администратор
+    """
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
+    pagination_class = LimitOffsetPagination
+    search_fields = ('name',)
+
+    @action(
+        methods=['delete'],
+        url_path=r'(?P<slug>\w+)',
+        lookup_field='slug',
+        detail=False
+    )
+    def get_genre_or_category(self, request, slug):
+        genre_or_category = self.get_object()
+        serializer = CategorySerializer(genre_or_category)
+        genre_or_category.delete()
+        return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+
+
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Title."""
 
-    http_method_names = ['get', 'post', 'patch', 'delete']
-    queryset = Title.objects.annotate(rating=Avg('reviews__score')).all()
+    http_method_names = ('get', 'post', 'patch', 'delete')
+    queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')
+    ).all().order_by('name')
     pagination_class = LimitOffsetPagination
     filter_backends = (DjangoFilterBackend,)
     permission_classes = (IsAdminOrReadOnly,)
@@ -44,27 +73,25 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleWriteSerializer
 
 
-class CategoryViewSet(CategoryGenreMixin):
+class CategoryViewSet(CategoryGenreBaseClass):
     """Вьюсет для модели Category."""
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    search_fields = ('name',)
 
 
-class GenreViewSet(CategoryGenreMixin):
+class GenreViewSet(CategoryGenreBaseClass):
     """Вьюсет для модели Genre."""
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    search_fields = ('name',)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Comment."""
 
     serializer_class = CommentSerializer
-    http_method_names = ['get', 'post', 'patch', 'delete']
+    http_method_names = ('get', 'post', 'patch', 'delete')
     permission_classes = (AdminModeratorAuthorPermission,)
 
     def get_queryset(self):
@@ -84,7 +111,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Review."""
 
     serializer_class = ReviewSerializer
-    http_method_names = ['get', 'post', 'patch', 'delete']
+    http_method_names = ('get', 'post', 'patch', 'delete')
     permission_classes = (AdminModeratorAuthorPermission,)
 
     def get_queryset(self):
@@ -103,7 +130,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     """Вьюсет для создания пользователей."""
 
-    http_method_names = ['get', 'post', 'patch', 'delete']
+    http_method_names = ('get', 'post', 'patch', 'delete')
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (AdminOnly,)
