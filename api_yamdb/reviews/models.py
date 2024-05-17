@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from api_yamdb.settings import MAX_LEN_NAME, LENGTH_TEXT
+from reviews.consts import LENGTH_TEXT, MAX_LEN_NAME
 from reviews.validators import validate_year
 
 User = get_user_model()

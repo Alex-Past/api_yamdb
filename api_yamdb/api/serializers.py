@@ -1,11 +1,15 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
+from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from api_yamdb.settings import MAX_LEN_NAME, MAX_LEN_SLUG
+from api_yamdb.settings import DEFAULT_FROM_EMAIL
+from users.validators import username_validator
 from reviews.models import Category, Genre, Title, Comment, Review
 
 User = get_user_model()
@@ -14,15 +18,6 @@ User = get_user_model()
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор для модели категория."""
 
-    # name = serializers.CharField(
-    #     max_length=MAX_LEN_NAME,
-    #     validators=[UniqueValidator(queryset=Category.objects.all())]
-    # )
-    # slug = serializers.SlugField(
-    #     max_length=MAX_LEN_SLUG,
-    #     validators=[UniqueValidator(queryset=Category.objects.all())]
-    # )
-
     class Meta:
         fields = ('name', 'slug')
         model = Category
@@ -30,15 +25,6 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор для модели жанр."""
-
-    # name = serializers.CharField(
-    #     max_length=MAX_LEN_NAME,
-    #     validators=[UniqueValidator(queryset=Genre.objects.all())]
-    # )
-    # slug = serializers.SlugField(
-    #     max_length=MAX_LEN_SLUG,
-    #     validators=[UniqueValidator(queryset=Genre.objects.all())]
-    # )
 
     class Meta:
         fields = ('name', 'slug')
@@ -139,19 +125,31 @@ class UserSerializer(serializers.ModelSerializer):
 class SignUpSerializer(serializers.Serializer):
     """Сериализатор для регистрации пользователя."""
 
-    username = serializers.RegexField(
-        regex=r'^[\w.@+-]+\Z',
+    username = serializers.CharField(
+        validators=[username_validator,],
         max_length=150,
         required=True
     )
     email = serializers.EmailField(max_length=254, required=True)
 
-    def validate(self, data):
-        if data['username'] == 'me':
-            raise serializers.ValidationError(
-                'Нельзя использовать имя "me"'
-            )
-        return data
+    def create(self, validated_data):
+        try:
+            user, create = User.objects.get_or_create(**validated_data)
+            username = validated_data.get('username')
+            email = validated_data.get('email')
+            confirmation_code = default_token_generator.make_token(user)
+            send_mail(subject='Регистрация на сайте api_yamdb',
+                      message=f'Проверочный код: {confirmation_code}',
+                      from_email=DEFAULT_FROM_EMAIL,
+                      recipient_list=[email],
+                      fail_silently=True, )
+
+        except IntegrityError:
+            username = validated_data.get('username')
+            email = validated_data.get('email')
+            f'Пользователь с именем "{username}" '
+            f'и почтой "{email}" уже существует!'
+        return user
 
 
 class TokenSerializer(serializers.Serializer):

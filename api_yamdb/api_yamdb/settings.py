@@ -129,14 +129,6 @@ SIMPLE_JWT = {
 }
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-DEFAULT_FROM_EMAIL = 'api_yamdb'
-
-
-MAX_LEN_NAME = 256
-
-MAX_LEN_SLUG = 50
-
-LENGTH_TEXT = 15
-
-LENGTH_TEXT = 15
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
+DEFAULT_FROM_EMAIL = 'api_yamdb@localhost.ru'

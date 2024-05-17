@@ -5,7 +5,6 @@ from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.pagination import LimitOffsetPagination
@@ -22,6 +21,7 @@ from api.serializers import (
     GenreSerializer, SignUpSerializer, TokenSerializer,
     UserSerializer, TitleReadSerializer, TitleWriteSerializer
 )
+from api_yamdb.settings import DEFAULT_FROM_EMAIL
 from reviews.models import Title, Category, Genre, Review
 
 User = get_user_model()
@@ -161,21 +161,22 @@ def signup(request):
     """Метод для регистрации пользователя."""
     serializer = SignUpSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    try:
-        username = serializer.validated_data.get('username')
-        email = serializer.validated_data.get('email')
-        user, created = User.objects.get_or_create(username=username,
-                                                   email=email)
-    except IntegrityError:
-        f'Пользователь с именем "{username}" '
-        'и почтой "{email}" уже существует!'
-        return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
-    confirmation_code = default_token_generator.make_token(user)
-    send_mail(subject='Регистрация на сайте api_yamdb',
-              message=f'Проверочный код: {confirmation_code}',
-              from_email='api_yamdb',
-              recipient_list=[email],
-              fail_silently=True, )
+    # try:
+    #     username = serializer.validated_data.get('username')
+    #     email = serializer.validated_data.get('email')
+    #     user, created = User.objects.get_or_create(username=username,
+    #                                                email=email)
+    # except IntegrityError:
+    #     f'Пользователь с именем "{username}" '
+    #     'и почтой "{email}" уже существует!'
+    #     return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
+    # confirmation_code = default_token_generator.make_token(user)
+    # send_mail(subject='Регистрация на сайте api_yamdb',
+    #           message=f'Проверочный код: {confirmation_code}',
+    #           from_email=DEFAULT_FROM_EMAIL,
+    #           recipient_list=[email],
+    #           fail_silently=True, )
+    serializer.save()
 
     return Response(serializer.data, status=status.HTTP_200_OK)
 
