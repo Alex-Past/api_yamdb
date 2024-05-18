@@ -124,6 +124,9 @@ class Review(models.Model):
             )]
         ordering = ('pub_date',)
 
+    def __str__(self):
+        return self.text[:LENGTH_TEXT]
+
 
 class Comment(models.Model):
     """Класс комментариев."""
