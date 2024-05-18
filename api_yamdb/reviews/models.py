@@ -93,7 +93,6 @@ class Review(models.Model):
         verbose_name='произведение'
     )
     text = models.CharField(
-        max_length=200
     )
     author = models.ForeignKey(
         User,
