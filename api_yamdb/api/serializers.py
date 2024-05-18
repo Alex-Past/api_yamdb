@@ -154,3 +154,10 @@ class TokenSerializer(serializers.Serializer):
 
     username = serializers.CharField(max_length=150, required=True)
     confirmation_code = serializers.CharField(required=True)
+
+    def validate(self, data):
+        confirmation_code = data.get('confirmation_code')
+        user = get_object_or_404(User, username=data.get('username'))
+        if not default_token_generator.check_token(user, confirmation_code):
+            raise ValidationError('Некорректный проверочный код.')
+        return data
