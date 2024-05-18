@@ -1,9 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MaxValueValidator
 from django.utils import timezone
 
-from consts import MAX_LEN_NAME, LENGTH_TEXT
+from consts import MAX_LEN_NAME, LENGTH_TEXT, SCORE_VALIDATOR
 
 User = get_user_model()
 
@@ -102,10 +102,7 @@ class Review(models.Model):
     )
     score = models.IntegerField(
         'оценка',
-        validators=(
-            MinValueValidator(1),
-            MaxValueValidator(10)
-        ),
+        validators=SCORE_VALIDATOR,
         error_messages={'validators': 'Оценка от 1 до 10!'}
     )
     pub_date = models.DateTimeField(
