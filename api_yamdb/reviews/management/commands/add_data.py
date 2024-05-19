@@ -19,30 +19,15 @@ RATIO_DATA = {
 }
 
 
-# class Command(BaseCommand):
-#     help = 'Команда добавляет данные в БД из csv файлов'
-#
-#     def handle(self, *args, **kwargs):
-#         for model, file in RATIO_DATA.items():
-#             with open(
-#                 f'{settings.BASE_DIR}/static/data/{file}',
-#                 'r', encoding='utf-8'
-#             ) as csv_data:
-#                 reader = csv.DictReader(csv_data)
-#                 model.objects.bulk_create(model(**data) for data in reader)
-#             self.stdout.write(self.style.SUCCESS('Загрузка прошла успешно'))
-
 class Command(BaseCommand):
-    help = 'Load data from csv files'
+    help = 'Команда добавляет данные в БД из csv файлов'
 
     def handle(self, *args, **kwargs):
-        for model, base in RATIO_DATA.items():
+        for model, file in RATIO_DATA.items():
             with open(
-                f'{settings.BASE_DIR}/static/data/{base}',
+                f'{settings.BASE_DIR}/static/data/{file}',
                 'r', encoding='utf-8'
-            ) as csv_file:
-                reader = csv.DictReader(csv_file)
+            ) as csv_data:
+                reader = csv.DictReader(csv_data)
                 model.objects.bulk_create(model(**data) for data in reader)
-
-        self.stdout.write(self.style.SUCCESS('Successfully load data'))
-
+            self.stdout.write(self.style.SUCCESS('Загрузка прошла успешно'))
