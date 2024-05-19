@@ -1,8 +1,8 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MaxValueValidator
 from django.db import models
 
-from reviews.consts import LENGTH_TEXT, MAX_LEN_NAME
+from reviews.consts import LENGTH_TEXT, MAX_LEN_NAME, SCORE_VALIDATOR
 from reviews.validators import validate_year
 
 User = get_user_model()
@@ -87,9 +87,7 @@ class Review(models.Model):
         related_name='reviews',
         verbose_name='произведение'
     )
-    text = models.CharField(
-        max_length=200
-    )
+    text = models.CharField
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -98,10 +96,7 @@ class Review(models.Model):
     )
     score = models.IntegerField(
         'оценка',
-        validators=(
-            MinValueValidator(1),
-            MaxValueValidator(10)
-        ),
+        validators=SCORE_VALIDATOR,
         error_messages={'validators': 'Оценка от 1 до 10!'}
     )
     pub_date = models.DateTimeField(
@@ -119,6 +114,9 @@ class Review(models.Model):
                 name='unique review'
             )]
         ordering = ('pub_date',)
+
+    def __str__(self):
+        return self.text[:LENGTH_TEXT]
 
 
 class Comment(models.Model):
