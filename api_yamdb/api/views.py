@@ -23,12 +23,12 @@ from reviews.models import Title, Category, Genre, Review
 User = get_user_model()
 
 
-class CategoryGenreBaseClass(
+class CategoryGenreBaseViewSet(
     viewsets.mixins.CreateModelMixin, viewsets.mixins.DestroyModelMixin,
     viewsets.mixins.ListModelMixin, viewsets.GenericViewSet
 ):
     """
-    Базовый класс для вьюсетов Категорий и Жанров.
+    Базовый вьюсет для Категорий и Жанров.
 
     Проектом предусмотрено, что категории и жанры можно только просматривать,
     создавать и удалять. Создавать и удалять может только администратор
@@ -37,18 +37,7 @@ class CategoryGenreBaseClass(
     filter_backends = (filters.SearchFilter,)
     pagination_class = LimitOffsetPagination
     search_fields = ('name',)
-
-    @action(
-        methods=['delete'],
-        url_path=r'(?P<slug>\w+)',
-        lookup_field='slug',
-        detail=False
-    )
-    def get_genre_or_category(self, request, slug):
-        genre_or_category = self.get_object()
-        serializer = CategorySerializer(genre_or_category)
-        genre_or_category.delete()
-        return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+    lookup_field = "slug"
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -69,14 +58,14 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleWriteSerializer
 
 
-class CategoryViewSet(CategoryGenreBaseClass):
+class CategoryViewSet(CategoryGenreBaseViewSet):
     """Вьюсет для модели Category."""
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
 
-class GenreViewSet(CategoryGenreBaseClass):
+class GenreViewSet(CategoryGenreBaseViewSet):
     """Вьюсет для модели Genre."""
 
     queryset = Genre.objects.all()
