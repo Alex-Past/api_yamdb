@@ -87,9 +87,7 @@ class Review(models.Model):
         related_name='reviews',
         verbose_name='произведение'
     )
-    text = models.CharField(
-        max_length=200
-    )
+    text = models.CharField
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -116,6 +114,9 @@ class Review(models.Model):
                 name='unique review'
             )]
         ordering = ('pub_date',)
+
+    def __str__(self):
+        return self.text[:LENGTH_TEXT]
 
 
 class Comment(models.Model):
