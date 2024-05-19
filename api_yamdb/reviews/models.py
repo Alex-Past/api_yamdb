@@ -87,7 +87,7 @@ class Review(models.Model):
         related_name='reviews',
         verbose_name='произведение'
     )
-    text = models.CharField
+    text = models.TextField(verbose_name='текст')
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
