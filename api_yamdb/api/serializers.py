@@ -68,8 +68,9 @@ class CommentSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = '__all__'
-        model = Comment
+        model = Review
+        fields = (
+            'id', 'text', 'author', 'score', 'pub_date')
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -92,8 +93,9 @@ class ReviewSerializer(serializers.ModelSerializer):
         return data
 
     class Meta:
-        fields = '__all__'
         model = Review
+        fields = (
+            'id', 'text', 'author', 'score', 'pub_date')
 
 
 class UserSerializer(serializers.ModelSerializer):
