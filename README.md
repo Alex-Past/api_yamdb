@@ -19,7 +19,7 @@
 
 ### Основной стек технологий проекта:
 
-Python, Django, Sqlite, Django Rest Framework, Simple jwt
+Python 3.9, Django, Sqlite, Django Rest Framework, Simple jwt
 
 ### Как запустить проект:
 
@@ -64,3 +64,17 @@ python3 manage.py runserver
 ```
 http://localhost:8000/redoc/
 ```
+
+### Авторы:
+
+Alexandr Pastukh
+
+https://github.com/Alex-Past
+
+Vasilina2023
+
+https://github.com/Vasilina2023
+
+ZigaFolk
+
+https://github.com/ZigaFolk
