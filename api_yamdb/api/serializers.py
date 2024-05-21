@@ -62,6 +62,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор для модели комментарии."""
 
+    review = serializers.HiddenField(default=Review.objects.all())
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True
@@ -75,6 +76,7 @@ class CommentSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для модели отзывы."""
 
+    title = serializers.HiddenField(default=Title.objects.all())
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True
