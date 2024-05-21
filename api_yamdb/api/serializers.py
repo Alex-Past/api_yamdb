@@ -58,6 +58,17 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'year', 'description', 'genre', 'category')
         model = Title
 
+        def to_representation(self, value):
+            """Выбор сериализатора изменяемого объекта."""
+            if isinstance(value, Genre):
+                serializer = GenreSerializer(value)
+            elif isinstance(value, Category):
+                serializer = CategorySerializer(value)
+            else:
+                raise Exception('Неожиданный тип выбранного объекта.')
+
+            return serializer.data
+
 
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор для модели комментарии."""
