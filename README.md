@@ -57,6 +57,13 @@ python3 manage.py migrate
 python3 manage.py runserver
 ```
 
+Заполнить базу данных можно через команду:
+
+```
+python3 manage.py add_data
+```
+
+
 ### Документация к API YaMDb
 
 При запущенном на локальном сервере проекте документацию можно найти по адресу
