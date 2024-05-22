@@ -154,3 +154,4 @@ media/
 README.md
 
 migrations
+api_yamdb/db.sqlite3
