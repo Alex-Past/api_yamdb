@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import MaxValueValidator
 from django.db import models
 
 from reviews.consts import LENGTH_TEXT, MAX_LEN_NAME, SCORE_VALIDATOR
@@ -87,7 +86,7 @@ class Review(models.Model):
         related_name='reviews',
         verbose_name='произведение'
     )
-    text = models.TextField()
+    text = models.TextField(verbose_name='текст')
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
