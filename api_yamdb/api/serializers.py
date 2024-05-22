@@ -123,7 +123,7 @@ class SignUpSerializer(serializers.Serializer):
     """Сериализатор для регистрации пользователя."""
 
     username = serializers.CharField(
-        validators=[username_validator,],
+        validators=[username_validator, ],
         max_length=150,
         required=True
     )
