@@ -1,64 +1,58 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.utils import timezone
 
-from api_yamdb.settings import MAX_LEN_NAME, LENGTH_TEXT
+from reviews.consts import LENGTH_TEXT, MAX_LEN_NAME, SCORE_VALIDATOR
+from reviews.validators import validate_year
 
 User = get_user_model()
 
 
-class Category(models.Model):
-    """Модель для категорий (типов) произведений."""
+class BaseModel(models.Model):
+    """Базовая модель для категорий и жанров произведения."""
 
-    name = models.TextField(
-        verbose_name='Наименование категории', max_length=MAX_LEN_NAME
+    name = models.CharField(
+        verbose_name='Наименование', max_length=MAX_LEN_NAME
     )
-    slug = models.SlugField(unique=True, verbose_name='Слаг категории')
+    slug = models.SlugField(unique=True, verbose_name='Слаг', db_index=True)
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return self.name[:LENGTH_TEXT]
+
+
+class Category(BaseModel):
+    """Модель для категорий (типов) произведений."""
 
     class Meta:
         verbose_name = 'категория'
         verbose_name_plural = 'Категории'
-
-    def __str__(self):
-        return self.name[:LENGTH_TEXT]
+        ordering = ('name',)
 
 
-class Genre(models.Model):
+class Genre(BaseModel):
     """Модель для жанров произведений."""
-
-    name = models.TextField(
-        verbose_name='Наименование жанра', max_length=MAX_LEN_NAME
-    )
-    slug = models.SlugField(unique=True, verbose_name='Слаг жанра')
 
     class Meta:
         verbose_name = 'жанр'
         verbose_name_plural = 'Жанры'
-
-    def __str__(self):
-        return self.name[:LENGTH_TEXT]
+        ordering = ('name',)
 
 
 class Title(models.Model):
     """Модель для произведения."""
 
-    name = models.TextField(verbose_name='Название', max_length=MAX_LEN_NAME)
-    year = models.PositiveSmallIntegerField(
-        verbose_name='Год выпуска',
-        validators=[
-            MaxValueValidator(
-                int(timezone.now().year),
-                message='Год выпуска не может быть больше текущего'
-            )
-        ],
+    name = models.CharField(verbose_name='Название', max_length=MAX_LEN_NAME)
+    year = models.SmallIntegerField(
+        verbose_name='Год выпуска', validators=[validate_year], db_index=True
     )
     genre = models.ManyToManyField(
-        Genre, through='GenreTitle', verbose_name='Жанр'
+        Genre, through='GenreTitle', verbose_name='Жанр', db_index=True
     )
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL, null=True,
-        verbose_name='Категория'
+        verbose_name='Категория', db_index=True
     )
     description = models.TextField(
         verbose_name='Описание', blank=True
@@ -67,6 +61,7 @@ class Title(models.Model):
     class Meta:
         verbose_name = 'произведение'
         verbose_name_plural = 'Произведения'
+        ordering = ('name',)
 
     def __str__(self):
         return self.name[:LENGTH_TEXT]
@@ -91,9 +86,7 @@ class Review(models.Model):
         related_name='reviews',
         verbose_name='произведение'
     )
-    text = models.CharField(
-        max_length=200
-    )
+    text = models.TextField(verbose_name='текст')
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -102,10 +95,7 @@ class Review(models.Model):
     )
     score = models.IntegerField(
         'оценка',
-        validators=(
-            MinValueValidator(1),
-            MaxValueValidator(10)
-        ),
+        validators=SCORE_VALIDATOR,
         error_messages={'validators': 'Оценка от 1 до 10!'}
     )
     pub_date = models.DateTimeField(
@@ -123,6 +113,9 @@ class Review(models.Model):
                 name='unique review'
             )]
         ordering = ('pub_date',)
+
+    def __str__(self):
+        return self.text[:LENGTH_TEXT]
 
 
 class Comment(models.Model):

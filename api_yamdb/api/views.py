@@ -1,11 +1,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from django.contrib.auth import get_user_model
-from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
-from django.db import IntegrityError
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.pagination import LimitOffsetPagination
@@ -14,7 +10,6 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
 from api.filters import TitleFilter
-from api.mixins import CategoryGenreMixin
 from api.permissions import (
     IsAdminOrReadOnly, AdminModeratorAuthorPermission, AdminOnly
 )
@@ -28,11 +23,30 @@ from reviews.models import Title, Category, Genre, Review
 User = get_user_model()
 
 
+class CategoryGenreBaseViewSet(
+    viewsets.mixins.CreateModelMixin, viewsets.mixins.DestroyModelMixin,
+    viewsets.mixins.ListModelMixin, viewsets.GenericViewSet
+):
+    """
+    Базовый вьюсет для Категорий и Жанров.
+
+    Проектом предусмотрено, что категории и жанры можно только просматривать,
+    создавать и удалять. Создавать и удалять может только администратор
+    """
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
+    pagination_class = LimitOffsetPagination
+    search_fields = ('name',)
+    lookup_field = "slug"
+
+
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Title."""
 
-    http_method_names = ['get', 'post', 'patch', 'delete']
-    queryset = Title.objects.annotate(rating=Avg('reviews__score')).all()
+    http_method_names = ('get', 'post', 'patch', 'delete')
+    queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')
+    ).all().order_by('name')
     pagination_class = LimitOffsetPagination
     filter_backends = (DjangoFilterBackend,)
     permission_classes = (IsAdminOrReadOnly,)
@@ -44,66 +58,67 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleWriteSerializer
 
 
-class CategoryViewSet(CategoryGenreMixin):
+class CategoryViewSet(CategoryGenreBaseViewSet):
     """Вьюсет для модели Category."""
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    search_fields = ('name',)
 
 
-class GenreViewSet(CategoryGenreMixin):
+class GenreViewSet(CategoryGenreBaseViewSet):
     """Вьюсет для модели Genre."""
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    search_fields = ('name',)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Comment."""
 
     serializer_class = CommentSerializer
-    http_method_names = ['get', 'post', 'patch', 'delete']
+    http_method_names = ('get', 'post', 'patch', 'delete')
     permission_classes = (AdminModeratorAuthorPermission,)
 
+    def get_review(self):
+        review_id = self.kwargs.get('review_id')
+        return get_object_or_404(Review, pk=review_id)
+
     def get_queryset(self):
-        review = get_object_or_404(
-            Review,
-            id=self.kwargs.get('review_id'))
-        return review.comments.all()
+        return self.get_review().comments.all()
 
     def perform_create(self, serializer):
-        review = get_object_or_404(
-            Review,
-            id=self.kwargs.get('review_id'))
-        serializer.save(author=self.request.user, review=review)
+        serializer.save(
+            author=self.request.user,
+            review=self.get_review()
+        )
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Review."""
 
     serializer_class = ReviewSerializer
-    http_method_names = ['get', 'post', 'patch', 'delete']
+    http_method_names = ('get', 'post', 'patch', 'delete')
     permission_classes = (AdminModeratorAuthorPermission,)
 
+    def get_title(self):
+        title_id = self.kwargs.get('title_id')
+        return get_object_or_404(Title, pk=title_id)
+
     def get_queryset(self):
-        title = get_object_or_404(
-            Title,
-            id=self.kwargs.get('title_id'))
-        return title.reviews.all()
+        return self.get_title().reviews.all()
 
     def perform_create(self, serializer):
-        title = get_object_or_404(
-            Title,
-            id=self.kwargs.get('title_id'))
-        serializer.save(author=self.request.user, title=title)
+
+        serializer.save(
+            author=self.request.user,
+            title=self.get_title()
+        )
 
 
 class UserViewSet(viewsets.ModelViewSet):
     """Вьюсет для создания пользователей."""
 
-    http_method_names = ['get', 'post', 'patch', 'delete']
+    http_method_names = ('get', 'post', 'patch', 'delete')
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (AdminOnly,)
@@ -134,22 +149,7 @@ def signup(request):
     """Метод для регистрации пользователя."""
     serializer = SignUpSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    try:
-        username = serializer.validated_data.get('username')
-        email = serializer.validated_data.get('email')
-        user, created = User.objects.get_or_create(username=username,
-                                                   email=email)
-    except IntegrityError:
-        f'Пользователь с именем "{username}" '
-        'и почтой "{email}" уже существует!'
-        return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
-    confirmation_code = default_token_generator.make_token(user)
-    send_mail(subject='Регистрация на сайте api_yamdb',
-              message=f'Проверочный код: {confirmation_code}',
-              from_email='api_yamdb',
-              recipient_list=[email],
-              fail_silently=True, )
-
+    serializer.save()
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -162,8 +162,5 @@ def get_token(request):
     user = get_object_or_404(
         User, username=serializer.validated_data.get('username')
     )
-    confirmation_code = serializer.validated_data.get('confirmation_code')
-    if default_token_generator.check_token(user, confirmation_code):
-        token = AccessToken.for_user(user)
-        return Response({'token': str(token)}, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    token = AccessToken.for_user(user)
+    return Response({'token': str(token)}, status=status.HTTP_200_OK)
