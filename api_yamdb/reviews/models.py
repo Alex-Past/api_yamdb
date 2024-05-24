@@ -7,7 +7,7 @@ from reviews.validators import validate_year
 User = get_user_model()
 
 
-class BaseModel(models.Model):
+class CategoryGenreModel(models.Model):
     """Базовая модель для категорий и жанров произведения."""
 
     name = models.CharField(
@@ -17,27 +17,26 @@ class BaseModel(models.Model):
 
     class Meta:
         abstract = True
+        ordering = ('name',)
 
     def __str__(self):
         return self.name[:LENGTH_TEXT]
 
 
-class Category(BaseModel):
+class Category(CategoryGenreModel):
     """Модель для категорий (типов) произведений."""
 
-    class Meta:
+    class Meta(CategoryGenreModel.Meta):
         verbose_name = 'категория'
         verbose_name_plural = 'Категории'
-        ordering = ('name',)
 
 
-class Genre(BaseModel):
+class Genre(CategoryGenreModel):
     """Модель для жанров произведений."""
 
-    class Meta:
+    class Meta(CategoryGenreModel.Meta):
         verbose_name = 'жанр'
         verbose_name_plural = 'Жанры'
-        ordering = ('name',)
 
 
 class Title(models.Model):
@@ -71,7 +70,7 @@ class GenreTitle(models.Model):
     """Промежуточная модель для произведений и жанров."""
 
     genre = models.ForeignKey(
-        Genre, on_delete=models.SET_NULL, null=True
+        Genre, on_delete=models.CASCADE
     )
     title = models.ForeignKey(Title, on_delete=models.CASCADE)
 

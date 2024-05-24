@@ -8,9 +8,9 @@ from api.views import (TitleViewSet, GenreViewSet, CategoryViewSet,
 app_name = 'api'
 
 router_v_1 = DefaultRouter()
-router_v_1.register(r'titles', TitleViewSet, basename='titles')
-router_v_1.register(r'genres', GenreViewSet, basename='genres')
-router_v_1.register(r'categories', CategoryViewSet, basename='categories')
+router_v_1.register('titles', TitleViewSet, basename='titles')
+router_v_1.register('genres', GenreViewSet, basename='genres')
+router_v_1.register('categories', CategoryViewSet, basename='categories')
 router_v_1.register(
     r'titles/(?P<title_id>\d+)/reviews',
     ReviewViewSet,
@@ -21,7 +21,7 @@ router_v_1.register(
     CommentViewSet,
     basename='comments'
 )
-router_v_1.register(r'users', UserViewSet, basename='users')
+router_v_1.register('users', UserViewSet, basename='users')
 
 
 urlpatterns = [

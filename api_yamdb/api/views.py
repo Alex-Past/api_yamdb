@@ -9,6 +9,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
+from api.baseviews import CategoryGenreBaseViewSet
 from api.filters import TitleFilter
 from api.permissions import (
     IsAdminOrReadOnly, AdminModeratorAuthorPermission, AdminOnly
@@ -21,23 +22,6 @@ from api.serializers import (
 from reviews.models import Title, Category, Genre, Review
 
 User = get_user_model()
-
-
-class CategoryGenreBaseViewSet(
-    viewsets.mixins.CreateModelMixin, viewsets.mixins.DestroyModelMixin,
-    viewsets.mixins.ListModelMixin, viewsets.GenericViewSet
-):
-    """
-    Базовый вьюсет для Категорий и Жанров.
-
-    Проектом предусмотрено, что категории и жанры можно только просматривать,
-    создавать и удалять. Создавать и удалять может только администратор
-    """
-    permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    pagination_class = LimitOffsetPagination
-    search_fields = ('name',)
-    lookup_field = "slug"
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -81,7 +65,8 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_review(self):
         review_id = self.kwargs.get('review_id')
-        return get_object_or_404(Review, pk=review_id)
+        title_id = self.kwargs.get('title_id')
+        return get_object_or_404(Review, pk=review_id, title_id=title_id)
 
     def get_queryset(self):
         return self.get_review().comments.all()

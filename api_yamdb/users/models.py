@@ -6,6 +6,8 @@ from . import validators
 
 MAX_LEN_NAME = 150
 
+MAX_LEN_EMAIL = 254
+
 
 class User(AbstractUser):
 
@@ -23,7 +25,7 @@ class User(AbstractUser):
     )
     first_name = models.CharField(max_length=MAX_LEN_NAME, blank=True)
     last_name = models.CharField(max_length=MAX_LEN_NAME, blank=True)
-    email = models.EmailField('Email', max_length=254, unique=True)
+    email = models.EmailField('Email', max_length=MAX_LEN_EMAIL, unique=True)
     role = models.CharField(
         'Роль пользователя',
         choices=UserRole.choices,
